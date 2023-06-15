@@ -66,10 +66,14 @@ class Play extends React.Component {
             correctAnswers: prevState.correctAnswers + 1,
             currentQuestionIndex: prevState.currentQuestionIndex + 1,
             numberofAnsweredQuestion: prevState.numberofAnsweredQuestion + 1
-        }))
+        }),
+            () => {
+                this.displayQuestions(this.state.questions, this.state.currentQuestion, this.state.nextQuestion, this.state.previousQuestion)
+            })
     }
 
     wrongAnswer = () => {
+        navigator.vibrate(1000)
         M.toast({
             html: "Wrong Answer!",
             classes: "toast-invalid",
@@ -79,7 +83,10 @@ class Play extends React.Component {
             wrongAnswers: prevState.wrongAnswers + 1,
             currentQuestionIndex: prevState.currentQuestionIndex + 1,
             numberofAnsweredQuestion: prevState.numberofAnsweredQuestion + 1
-        }))
+        }),
+            () => (
+                this.displayQuestions(this.state.questions, this.state.currentQuestion, this.state.nextQuestion, this.state.previousQuestion)
+            ))
     }
 
     render() {
