@@ -40,8 +40,8 @@ class Play extends React.Component {
         if (!isEmpty(this.state.questions)) {
             questions = this.state.questions;
             currentQuestion = questions[currentQuestionIndex];
-            nextQuestion = questions[currentQuestion + 1];
-            previousQuestion = questions[currentQuestion - 1];
+            nextQuestion = questions[currentQuestionIndex + 1];
+            previousQuestion = questions[currentQuestionIndex - 1];
             const answer = currentQuestion.answer
             this.setState({
                 currentQuestion,
@@ -97,9 +97,50 @@ class Play extends React.Component {
                 this.displayQuestions(this.state.questions, this.state.currentQuestion, this.state.nextQuestion, this.state.previousQuestion)
             ))
     }
-
-    handleButtonClick = () => {
+    handleNextButtonClick = () => {
         this.handlePlaySound()
+        if (this.state.nextQuestion !== undefined) {
+            this.setState(prevState => ({
+                currentQuestionIndex: prevState.currentQuestionIndex + 1
+            }), () => {
+                this.displayQuestions(this.state.state, this.state.currentQuestion, this.state.nextQuestion)
+            })
+        }
+    }
+    handlePreviousButtonClick = () => {
+        this.handlePlaySound()
+        if (this.state.previousQuestion !== undefined) {
+            this.setState(prevState => ({
+                currentQuestionIndex: prevState.currentQuestionIndex - 1
+            }), () => {
+                this.displayQuestions(this.state.state, this.state.currentQuestion, this.state.nextQuestion)
+            })
+        }
+    }
+
+    handleQuitClick = () => {
+        this.handlePlaySound();
+        console.log(this.props)
+        if (window.confirm('Are you sure to quit the exam?')) {
+            window.location.href = '/'
+            // this.props.history.push('/');/
+        }
+    }
+
+    handleButtonClick = (e) => {
+        switch (e.target.id) {
+            case 'next-button':
+                this.handleNextButtonClick();
+                break;
+            case 'previous-button':
+                this.handlePreviousButtonClick();
+                break;
+            case 'quit-button':
+                this.handleQuitClick();
+                break;
+            default:
+                break;
+        }
     }
 
     handlePlaySound = () => {
@@ -142,9 +183,9 @@ class Play extends React.Component {
                         <p onClick={this.handleOptionClick} className="option">{currentQuestion.optionD}</p>
                     </div>
                     <div className="button-container">
-                        <button onClick={this.handleButtonClick}>Previous</button>
-                        <button onClick={this.handleButtonClick}>Next</button>
-                        <button onClick={this.handleButtonClick}>Quit</button>
+                        <button id="previous-button" onClick={this.handleButtonClick}>Previous</button>
+                        <button id="next-button" onClick={this.handleButtonClick}>Next</button>
+                        <button id="quit-button" onClick={this.handleButtonClick}>Quit</button>
                     </div>
                 </div>
             </Fragment>
