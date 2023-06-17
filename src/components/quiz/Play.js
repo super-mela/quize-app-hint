@@ -29,11 +29,13 @@ class Play extends React.Component {
             time: {},
             previousRandomNumber: [],
         }
+        this.interval = null;
     }
 
     componentDidMount() {
         const { questions, currentQuestion, nextQuestion, previousQuestion } = this.state
-        this.displayQuestions(questions, currentQuestion, nextQuestion, previousQuestion)
+        this.displayQuestions(questions, currentQuestion, nextQuestion, previousQuestion);
+        this.startTimer();
     }
 
     displayQuestions = (questions = this.state.questions, currentQuestion, nextQuestion, previousQuestion) => {
@@ -124,10 +126,8 @@ class Play extends React.Component {
 
     handleQuitClick = () => {
         this.handlePlaySound();
-        console.log(this.props)
         if (window.confirm('Are you sure to quit the exam?')) {
             window.location.href = '/'
-            // this.props.history.push('/');/
         }
     }
 
@@ -235,8 +235,40 @@ class Play extends React.Component {
         }
     }
 
+    startTimer = () => {
+        const countDownTime = Date.now() + 30000;
+        // clearInterval(this.interval);
+        this.interval = setInterval(() => {
+            const now = new Date();
+            const distance = countDownTime - now;
+
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            // console.log(countDownTime, now, distance)
+            if (distance < 0) {
+                clearInterval(this.interval);
+                this.setState({
+                    time: {
+                        minutes: 0,
+                        seconds: 0
+                    }
+                }, () => {
+                    alert('Quiz has ended!');
+                    window.location.href = '/'
+                })
+            } else {
+                this.setState({
+                    time: {
+                        minutes,
+                        seconds
+                    }
+                })
+            }
+        }, 1000)
+    }
+
     render() {
-        const { currentQuestion, numberofQuestions, currentQuestionIndex, hints, fiftyFifty } = this.state
+        const { currentQuestion, numberofQuestions, currentQuestionIndex, hints, fiftyFifty, time } = this.state
         return (
             <Fragment>
                 <Helmet><title>Quiz page</title></Helmet>
@@ -262,7 +294,7 @@ class Play extends React.Component {
                     <div className="timer-container">
                         <p>
                             <span className="left">{currentQuestionIndex + 1} of {numberofQuestions}</span>
-                            <span className="right">2:15 <span className="mdi mdi-clock-outline mdi-24px"></span></span>
+                            <span className="right">{time.minutes}:{time.seconds}<span className="mdi mdi-clock-outline mdi-24px"></span></span>
                         </p>
                     </div>
                     <h5>{currentQuestion.question}</h5>
