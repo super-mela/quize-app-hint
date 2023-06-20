@@ -26,6 +26,8 @@ class Play extends React.Component {
             hints: 5,
             fiftyFifty: 2,
             usedFiftyFifty: false,
+            nextButtonDisabled: false,
+            previousButtonDisabled: true,
             time: {},
             previousRandomNumber: [],
         }
@@ -36,6 +38,10 @@ class Play extends React.Component {
         const { questions, currentQuestion, nextQuestion, previousQuestion } = this.state
         this.displayQuestions(questions, currentQuestion, nextQuestion, previousQuestion);
         this.startTimer();
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval)
     }
 
     displayQuestions = (questions = this.state.questions, currentQuestion, nextQuestion, previousQuestion) => {
@@ -54,7 +60,8 @@ class Play extends React.Component {
                 answer,
                 previousRandomNumber: []
             }, () => {
-                this.showOptions()
+                this.showOptions();
+                this.handleDisableButton()
             })
         }
     }
@@ -83,7 +90,11 @@ class Play extends React.Component {
             numberofAnsweredQuestion: prevState.numberofAnsweredQuestion + 1
         }),
             () => {
-                this.displayQuestions(this.state.questions, this.state.currentQuestion, this.state.nextQuestion, this.state.previousQuestion)
+                if (this.state.nextQuestion === undefined) {
+                    this.endQuiz()
+                } else {
+                    this.displayQuestions(this.state.questions, this.state.currentQuestion, this.state.nextQuestion, this.state.previousQuestion)
+                }
             })
     }
 
@@ -99,9 +110,13 @@ class Play extends React.Component {
             currentQuestionIndex: prevState.currentQuestionIndex + 1,
             numberofAnsweredQuestion: prevState.numberofAnsweredQuestion + 1
         }),
-            () => (
-                this.displayQuestions(this.state.questions, this.state.currentQuestion, this.state.nextQuestion, this.state.previousQuestion)
-            ))
+            () => {
+                if (this.state.nextQuestion === undefined) {
+                    this.endQuiz()
+                } else {
+                    this.displayQuestions(this.state.questions, this.state.currentQuestion, this.state.nextQuestion, this.state.previousQuestion)
+                }
+            })
     }
     handleNextButtonClick = () => {
         this.handlePlaySound()
@@ -236,15 +251,13 @@ class Play extends React.Component {
     }
 
     startTimer = () => {
-        const countDownTime = Date.now() + 30000;
-        // clearInterval(this.interval);
+        const countDownTime = Date.now() + 180000;
         this.interval = setInterval(() => {
             const now = new Date();
             const distance = countDownTime - now;
 
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            // console.log(countDownTime, now, distance)
             if (distance < 0) {
                 clearInterval(this.interval);
                 this.setState({
@@ -253,8 +266,7 @@ class Play extends React.Component {
                         seconds: 0
                     }
                 }, () => {
-                    alert('Quiz has ended!');
-                    window.location.href = '/'
+                    this.endQuiz();
                 })
             } else {
                 this.setState({
@@ -264,6 +276,45 @@ class Play extends React.Component {
                     }
                 })
             }
+        }, 1000)
+    }
+
+    handleDisableButton = () => {
+        if (this.state.previousQuestion === undefined || this.state.currentQuestionIndex === 0) {
+            this.setState({
+                previousButtonDisabled: true
+            });
+        } else {
+            this.setState({
+                previousButtonDisabled: false
+            })
+        }
+        if (this.state.nextQuestion === undefined || this.state.currentQuestionIndex + 1 === this.state.numberofQuestions) {
+            this.setState({
+                nextButtonDisabled: true
+            })
+        } else {
+            this.setState({
+                nextButtonDisabled: false
+            })
+        }
+    }
+
+    endQuiz = () => {
+        alert('Quiz has ended!')
+        const { state } = this;
+        const playerStates = {
+            score: state.score,
+            numberofQuestions: state.numberofQuestions,
+            numberofAnsweredQuestion: state.numberofAnsweredQuestion,
+            correctAnswers: state.correctAnswers,
+            wrongAnswers: state.wrongAnswers,
+            fiftyFifty: 2 - state.fiftyFifty,
+            hints: 5 - state.hints
+        }
+        console.log(playerStates)
+        setTimeout(() => {
+            window.location.href = "/"
         }, 1000)
     }
 
@@ -307,8 +358,18 @@ class Play extends React.Component {
                         <p onClick={this.handleOptionClick} className="option">{currentQuestion.optionD}</p>
                     </div>
                     <div className="button-container">
-                        <button id="previous-button" onClick={this.handleButtonClick}>Previous</button>
-                        <button id="next-button" onClick={this.handleButtonClick}>Next</button>
+                        <button
+                            className={this.state.previousButtonDisabled ? 'disable' : ''}
+                            id="previous-button"
+                            onClick={this.handleButtonClick}>
+                            Previous
+                        </button>
+                        <button
+                            className={this.state.nextButtonDisabled ? 'disable' : ''}
+                            id="next-button"
+                            onClick={this.handleButtonClick}>
+                            Next
+                        </button>
                         <button id="quit-button" onClick={this.handleButtonClick}>Quit</button>
                     </div>
                 </div>
